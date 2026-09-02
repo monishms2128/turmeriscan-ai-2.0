@@ -34,25 +34,25 @@ flowchart TD
         A3[Built-in Demo Samples] --> A
     end
 
-    subgraph Preprocess["2. Preprocessing & Normalization"]
+    subgraph Preprocess["2. Preprocessing and Normalization"]
         A --> B[Grayscale L-Channel Conversion]
-        B --> C[Otsu/Binary Foreground Cropping]
+        B --> C[Otsu Binary Foreground Cropping]
         C --> D[Adaptive CLAHE Contrast Enhancement]
         D --> E[Pseudo-Color Spectral Map]
-        D --> F[Replicate to 3-Channel RGB & Resize 224x224]
-        F --> G[MobileNetV2 Normalization [-1, 1]]
+        D --> F[Replicate to 3-Channel RGB, Resize 224x224]
+        F --> G[MobileNetV2 Normalization, range -1 to 1]
     end
 
-    subgraph Inference["3. Deep Learning & Explainability"]
+    subgraph Inference["3. Deep Learning and Explainability"]
         G --> H[MobileNetV2 Transfer Learning Backbone]
-        H --> I[GAP + Dense(64) + Dense(2, Softmax)]
+        H --> I[GAP + Dense 64 + Dense 2 Softmax]
         I --> J[Purity Classification: Pure vs Adulterated]
         H & I --> K[Grad-CAM Gradient Attribution Map]
     end
 
-    subgraph Output["4. Dashboard & Analytics"]
+    subgraph Output["4. Dashboard and Analytics"]
         J & K --> L[Quad-View Inspection Cards]
-        J --> M[KPI Metrics & Summary Dashboard]
+        J --> M[KPI Metrics and Summary Dashboard]
         J --> N[CSV Audit Report Export]
     end
 ```
