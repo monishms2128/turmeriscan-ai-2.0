@@ -38,6 +38,7 @@ from src.config import (
     SAMPLES_DIR,
 )
 from src.explainability import generate_gradcam_heatmap, overlay_gradcam
+from src.hardware import auto_detect_arduino_port, list_available_ports, send_verdict_to_arduino
 from src.model import load_screening_model, process_and_classify_image
 from src.quality_validator import assess_image_quality
 from src.report import compute_kpi_summary, generate_csv_bytes, generate_summary_dataframe
@@ -386,6 +387,24 @@ with st.sidebar:
     )
 
     st.markdown("---")
+    st.markdown("#### 🦾 IoT Sorting Station (Arduino)")
+    hardware_enabled = st.checkbox(
+        "Enable Hardware Sorter",
+        value=True,
+        help="Dispatches real-time serial signals to Arduino Uno to update LCD screen, flash indicator LEDs, and actuate the mechanical sorting arm.",
+    )
+    selected_port = None
+    if hardware_enabled:
+        available_ports = list_available_ports()
+        detected_default = auto_detect_arduino_port()
+        if available_ports:
+            default_idx = available_ports.index(detected_default) if detected_default in available_ports else 0
+            selected_port = st.selectbox("Serial COM Port", available_ports, index=default_idx)
+            st.caption(f"🟢 **Station Connected:** `{selected_port}`")
+        else:
+            st.caption("ℹ️ *No active serial ports detected.*")
+
+    st.markdown("---")
     st.markdown("#### 🛡️ Active Threat Detectors")
     st.markdown(
         """
@@ -574,6 +593,17 @@ with tab_screen:
                                 quality_metrics=quality_info,
                             )
 
+                            # 7. Physical Hardware Sorter Actuation (Arduino)
+                            hw_actuated = False
+                            if hardware_enabled and selected_port:
+                                primary_threat = adult_profile.get("primary_concern", "")
+                                hw_actuated = send_verdict_to_arduino(
+                                    port=selected_port,
+                                    status=res["status"],
+                                    confidence=res["confidence"],
+                                    adulterant=primary_threat,
+                                )
+
                             results.append(
                                 {
                                     "filename": filename,
@@ -589,6 +619,7 @@ with tab_screen:
                                     "quality_info": quality_info,
                                     "adult_profile": adult_profile,
                                     "pdf_cert": pdf_cert_bytes,
+                                    "hw_actuated": hw_actuated,
                                 }
                             )
                         except Exception as e:
@@ -657,6 +688,9 @@ with tab_screen:
                                 """,
                                 unsafe_allow_html=True,
                             )
+
+                            if r.get("hw_actuated"):
+                                st.caption("🦾 **IoT Station:** Physical sorting signal dispatched to Arduino Uno.")
 
                             col_left, col_right = st.columns([1, 1.2], gap="large")
 
