@@ -38,7 +38,12 @@ from src.config import (
     SAMPLES_DIR,
 )
 from src.explainability import generate_gradcam_heatmap, overlay_gradcam
-from src.hardware import auto_detect_arduino_port, list_available_ports, send_verdict_to_arduino
+from src.hardware import (
+    auto_detect_arduino_port,
+    list_available_ports,
+    send_raw_command_to_arduino,
+    send_verdict_to_arduino,
+)
 from src.model import load_screening_model, process_and_classify_image
 from src.quality_validator import assess_image_quality
 from src.report import compute_kpi_summary, generate_csv_bytes, generate_summary_dataframe
@@ -401,6 +406,20 @@ with st.sidebar:
             default_idx = available_ports.index(detected_default) if detected_default in available_ports else 0
             selected_port = st.selectbox("Serial COM Port", available_ports, index=default_idx)
             st.caption(f"🟢 **Station Connected:** `{selected_port}`")
+
+            with st.expander("🧪 Test Hardware Station", expanded=False):
+                st.caption("Click to trigger immediate hardware actions:")
+                c_t1, c_t2 = st.columns(2)
+                with c_t1:
+                    if st.button("🟢 Test Pure", use_container_width=True):
+                        send_verdict_to_arduino(selected_port, "Pure", 0.992)
+                    if st.button("💡 Green LED", use_container_width=True):
+                        send_raw_command_to_arduino(selected_port, "TEST_GREEN")
+                with c_t2:
+                    if st.button("🔴 Test Adulterated", use_container_width=True):
+                        send_verdict_to_arduino(selected_port, "Adulterated", 0.985, "Metanil Yellow")
+                    if st.button("⚙️ Sweep Servo", use_container_width=True):
+                        send_raw_command_to_arduino(selected_port, "TEST_SERVO")
         else:
             st.caption("ℹ️ *No active serial ports detected.*")
 

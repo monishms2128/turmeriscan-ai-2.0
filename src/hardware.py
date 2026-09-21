@@ -77,3 +77,19 @@ def send_verdict_to_arduino(
             return True
     except Exception:
         return False
+
+
+def send_raw_command_to_arduino(port: str, command: str, baud_rate: int = 9600) -> bool:
+    """Send raw text command (e.g. 'TEST_GREEN') to Arduino."""
+    if not SERIAL_AVAILABLE or not port:
+        return False
+    try:
+        with serial.Serial(port, baud_rate, timeout=1) as ser:
+            time.sleep(1.8)
+            payload = command.strip() + "\n"
+            ser.write(payload.encode("utf-8"))
+            ser.flush()
+            return True
+    except Exception:
+        return False
+

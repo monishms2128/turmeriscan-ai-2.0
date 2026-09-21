@@ -1,5 +1,5 @@
 /*
- * TurmeriScan AI — Physical Sorting & Alert Station (Silent / No Buzzer)
+ * TurmeriScan AI — Physical Sorting & Alert Station (v2.1 Enhanced)
  * Hardware Actuator for Arduino Uno
  * 
  * Pinout:
@@ -24,8 +24,8 @@ const int PIN_SERVO     = 9;
 
 // Servo Angles for sorting
 const int ANGLE_CENTER = 90;
-const int ANGLE_PURE   = 45;   // Swings Left (Pure Tray)
-const int ANGLE_REJECT = 135;  // Swings Right (Rejection Tray)
+const int ANGLE_PURE   = 40;   // Swings Left (Pure / Approved Bin)
+const int ANGLE_REJECT = 140;  // Swings Right (Adulterated / Reject Bin)
 
 void setup() {
   Serial.begin(9600);
@@ -49,24 +49,25 @@ void runSelfTest() {
   lcd.setCursor(0, 0);
   lcd.print("TurmeriScan AI");
   lcd.setCursor(0, 1);
-  lcd.print("Hardware Ready..");
+  lcd.print("Hardware Init OK");
 
-  // Flash Green then Red LED
+  // Flash Green then Red LED for 1 full second each so wiring is obvious
   digitalWrite(PIN_GREEN_LED, HIGH);
-  delay(300);
+  delay(800);
   digitalWrite(PIN_GREEN_LED, LOW);
+
   digitalWrite(PIN_RED_LED, HIGH);
-  delay(300);
+  delay(800);
   digitalWrite(PIN_RED_LED, LOW);
 
-  // Test servo movement
-  sorterServo.write(ANGLE_PURE);
-  delay(400);
-  sorterServo.write(ANGLE_REJECT);
-  delay(400);
-  sorterServo.write(ANGLE_CENTER);
+  // Clear visual sweep of the servo arm
+  sorterServo.write(ANGLE_PURE);   // 40 degrees Left
+  delay(700);
+  sorterServo.write(ANGLE_REJECT); // 140 degrees Right
+  delay(700);
+  sorterServo.write(ANGLE_CENTER); // 90 degrees Center
+  delay(500);
 
-  delay(800);
   showIdleScreen();
 }
 
@@ -78,6 +79,7 @@ void showIdleScreen() {
   lcd.print("Awaiting Sample");
   digitalWrite(PIN_GREEN_LED, LOW);
   digitalWrite(PIN_RED_LED, LOW);
+  sorterServo.write(ANGLE_CENTER);
 }
 
 void handlePure(String confidence) {
@@ -90,13 +92,15 @@ void handlePure(String confidence) {
   digitalWrite(PIN_GREEN_LED, HIGH);
   digitalWrite(PIN_RED_LED, LOW);
 
-  // Move sorting arm to Pure tray
+  // Swing sorting arm to the LEFT (Pure bin)
   sorterServo.write(ANGLE_PURE);
-  delay(2500);
+  
+  // Keep verdict and arm active for 6 seconds so user/judges see it clearly!
+  delay(6000);
 
-  // Return to center
+  // Return to center standby
   sorterServo.write(ANGLE_CENTER);
-  delay(800);
+  delay(500);
   showIdleScreen();
 }
 
@@ -113,20 +117,19 @@ void handleAdulterated(String confidence, String adulterant) {
 
   digitalWrite(PIN_GREEN_LED, LOW);
 
-  // Move sorting arm to Reject tray
+  // Swing sorting arm to the RIGHT (Reject bin)
   sorterServo.write(ANGLE_REJECT);
 
-  // Warning flashing on Red LED
-  for (int i = 0; i < 5; i++) {
+  // Warning flashing on Red LED for 6 seconds
+  for (int i = 0; i < 12; i++) {
     digitalWrite(PIN_RED_LED, HIGH);
-    delay(200);
+    delay(250);
     digitalWrite(PIN_RED_LED, LOW);
-    delay(200);
+    delay(250);
   }
 
-  delay(1500);
   sorterServo.write(ANGLE_CENTER);
-  delay(800);
+  delay(500);
   showIdleScreen();
 }
 
@@ -154,6 +157,42 @@ void loop() {
         }
       }
       handleAdulterated(conf, adult);
+    }
+    else if (msg == "TEST_GREEN") {
+      lcd.clear();
+      lcd.setCursor(0, 0);
+      lcd.print("TEST: GREEN LED");
+      lcd.setCursor(0, 1);
+      lcd.print("Pin 5 ON (5 sec)");
+      digitalWrite(PIN_GREEN_LED, HIGH);
+      delay(5000);
+      digitalWrite(PIN_GREEN_LED, LOW);
+      showIdleScreen();
+    }
+    else if (msg == "TEST_RED") {
+      lcd.clear();
+      lcd.setCursor(0, 0);
+      lcd.print("TEST: RED LED");
+      lcd.setCursor(0, 1);
+      lcd.print("Pin 6 ON (5 sec)");
+      digitalWrite(PIN_RED_LED, HIGH);
+      delay(5000);
+      digitalWrite(PIN_RED_LED, LOW);
+      showIdleScreen();
+    }
+    else if (msg == "TEST_SERVO") {
+      lcd.clear();
+      lcd.setCursor(0, 0);
+      lcd.print("TEST: SERVO ARM");
+      lcd.setCursor(0, 1);
+      lcd.print("Swinging...");
+      sorterServo.write(ANGLE_PURE);
+      delay(1500);
+      sorterServo.write(ANGLE_REJECT);
+      delay(1500);
+      sorterServo.write(ANGLE_CENTER);
+      delay(1000);
+      showIdleScreen();
     }
   }
 }
