@@ -395,8 +395,8 @@ def generate_pdf_certificate(
 
     sig_cell = [
         img_sig,
-        Paragraph("<b>Dr. V. S. Raman, Ph.D.</b>", body_bold),
-        Paragraph("Chief Metrologist & Director", body_style),
+        Paragraph("<b>Monish MSM</b>", body_bold),
+        Paragraph("Founder & Director", body_style),
         Paragraph("TurmeriScan AI Laboratories", disclaimer_style),
     ]
 
