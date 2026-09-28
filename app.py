@@ -281,15 +281,31 @@ st.markdown(
             flex-wrap: wrap; gap: 0.3rem;
         }
 
-        /* Mobile responsive */
-        @media (max-width: 768px) {
+        /* Raspberry Pi & Touchscreen Optimized Targets */
+        .stButton > button {
+            border-radius: 10px !important;
+            padding: 0.55rem 1.1rem !important;
+            font-weight: 700 !important;
+            transition: all 0.2s ease !important;
+        }
+        .stButton > button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 14px rgba(245, 158, 11, 0.25);
+        }
+
+        /* Mobile & Embedded Touchscreen (Raspberry Pi 3.5-7 inch) */
+        @media (max-width: 900px) {
             .block-container {
-                padding-left: 0.8rem !important;
-                padding-right: 0.8rem !important;
-                padding-top: 2.6rem !important;
+                padding-left: 0.6rem !important;
+                padding-right: 0.6rem !important;
+                padding-top: 2.2rem !important;
             }
             .hud-status-bar { flex-direction: column; align-items: flex-start; }
             .hero-banner { padding: 1.2rem; }
+            .stButton > button {
+                width: 100%;
+                min-height: 44px; /* Touch-friendly hit target */
+            }
         }
 
         .footer-note {
@@ -824,6 +840,41 @@ with tab_screen:
                                     use_container_width=True,
                                     key=f"dl_pdf_{sample_idx}",
                                 )
+
+                                # Inline Certificate Preview Modal
+                                with st.expander("👁️ Preview Official Certificate of Analysis (Signed by Monish MSM)", expanded=False):
+                                    cert_status_title = "GRADE A — 100% PURE CURCUMA LONGA (PASS)" if r["status"] == "Pure" else "NON-COMPLIANT — SYNTHETIC ADULTERANT DETECTED (FAIL)"
+                                    cert_bg = "rgba(16,185,129,0.12)" if r["status"] == "Pure" else "rgba(239,68,68,0.12)"
+                                    cert_border = "#059669" if r["status"] == "Pure" else "#dc2626"
+                                    st.markdown(
+                                        f"""
+                                        <div style="border: 2px solid {cert_border}; border-radius: 14px; padding: 1.2rem; background: var(--secondary-background-color, #f8fafc); box-shadow: 0 4px 16px rgba(0,0,0,0.06);">
+                                            <div style="text-align: center; border-bottom: 2px solid #d97706; padding-bottom: 0.6rem; margin-bottom: 0.8rem;">
+                                                <h4 style="margin: 0; color: #064e3b; letter-spacing: 0.05em; font-weight: 800;">TURMERISCAN AI LABORATORIES</h4>
+                                                <div style="font-size: 0.72rem; color: #64748b; font-weight: 700; text-transform: uppercase;">Central Food Safety Metrology & Spectral Defense Division</div>
+                                                <div style="font-size: 0.68rem; color: #d97706; font-weight: 700;">ISO/IEC 17025:2017 ACCREDITED TESTING LABORATORY · CERTIFICATE OF ANALYSIS</div>
+                                            </div>
+                                            <div style="display: flex; justify-content: space-between; font-size: 0.78rem; margin-bottom: 0.6rem; color: var(--text-color, #334155); flex-wrap: wrap; gap: 0.4rem;">
+                                                <span><strong>Certificate ID:</strong> TSAI-2026-AUTH</span>
+                                                <span><strong>Sample:</strong> {html.escape(r['filename'])}</span>
+                                                <span><strong>Confidence:</strong> {r['confidence']:.2f}%</span>
+                                            </div>
+                                            <div style="background: {cert_bg}; border: 1.5px solid {cert_border}; border-radius: 8px; padding: 0.6rem; text-align: center; font-weight: 800; font-size: 0.88rem; margin-bottom: 0.8rem; color: {cert_border};">
+                                                {cert_status_title}
+                                            </div>
+                                            <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #cbd5e1; padding-top: 0.6rem; font-size: 0.75rem; flex-wrap: wrap; gap: 0.6rem;">
+                                                <div>
+                                                    <div style="font-weight: 800; font-size: 0.82rem; color: var(--text-color, #0f172a);">Monish MSM</div>
+                                                    <div style="font-size: 0.70rem; color: #64748b;">Founder & Director, TurmeriScan AI</div>
+                                                </div>
+                                                <div style="border: 2px dashed {cert_border}; border-radius: 999px; padding: 0.35rem 0.75rem; font-size: 0.70rem; font-weight: 800; color: {cert_border}; text-transform: uppercase;">
+                                                    ★ OFFICIAL LABORATORY SEAL ★
+                                                </div>
+                                            </div>
+                                        </div>
+                                        """,
+                                        unsafe_allow_html=True,
+                                    )
 
                             st.markdown("---")
 
